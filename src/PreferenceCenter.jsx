@@ -1,20 +1,10 @@
-import { useState, useEffect } from "react";
-import Knock from "@knocklabs/client";
+import knock from "./knockClient";
 
-const knock = new Knock(import.meta.env.VITE_KNOCK_PUBLIC_API_KEY);
-knock.authenticate(import.meta.env.VITE_KNOCK_USER_ID);
-
-export default function PreferenceCenter() {
-  const [prefs, setPrefs] = useState(null);
-
-  useEffect(() => {
-    knock.preferences.get().then(setPrefs);
-  }, []);
-
+export default function PreferenceCenter({ prefs, onChange }) {
   function resetWorkflow(key) {
     const updated = structuredClone(prefs);
     delete updated.workflows[key];
-    setPrefs(updated);
+    onChange(updated);
     knock.preferences.set(updated);
   }
 
@@ -22,16 +12,14 @@ export default function PreferenceCenter() {
     const updated = structuredClone(prefs);
     if (!updated.channel_types) updated.channel_types = {};
     path.reduce((obj, key, i) => (i === path.length - 1 ? (obj[key] = value) : obj[key]), updated);
-    setPrefs(updated);
+    onChange(updated);
     knock.preferences.set(updated);
   }
-
-  if (!prefs) return <p>Loading...</p>;
 
   const channels = ["email", "in_app_feed"];
 
   return (
-    <div style={{ fontFamily: "sans-serif", maxWidth: 480, margin: "2rem auto", padding: "0 1rem" }}>
+    <div style={{ fontFamily: "sans-serif", padding: "2rem 1rem" }}>
       <h2>Notification Preferences</h2>
 
       <h3>Global</h3>
