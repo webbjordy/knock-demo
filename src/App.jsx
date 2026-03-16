@@ -1,6 +1,7 @@
 import { useState, useEffect, useRef } from "react";
 import PreferenceCenter from "./PreferenceCenter";
 import NotificationFeedPanel from "./NotificationFeed";
+import SlackKitPanel from "./SlackKitPanel";
 import knock from "./knockClient";
 
 function colorize(json) {
@@ -57,7 +58,10 @@ function JsonPanel({ prefs, savedAt }) {
   );
 }
 
+const TABS = ["Preferences", "Slack"];
+
 export default function App() {
+  const [tab, setTab] = useState("Preferences");
   const [prefs, setPrefs] = useState(null);
   const [savedAt, setSavedAt] = useState(null);
   const timerRef = useRef(null);
@@ -76,18 +80,44 @@ export default function App() {
 
   return (
     <div style={{ display: "flex", minHeight: "100vh" }}>
+      {/* Left panel: JSON inspector (only on Preferences tab) */}
       <div style={{ width: "45%", flexShrink: 0 }}>
-        {prefs ? <JsonPanel prefs={prefs} savedAt={savedAt} /> : null}
+        {tab === "Preferences" && prefs ? <JsonPanel prefs={prefs} savedAt={savedAt} /> : null}
       </div>
 
       <div style={{ flex: 1, display: "flex", flexDirection: "column" }}>
-        <div style={{ padding: "1rem", display: "flex", justifyContent: "flex-end" }}>
+        {/* Top bar */}
+        <div style={{ padding: "0.75rem 1rem", display: "flex", alignItems: "center", justifyContent: "space-between", borderBottom: "1px solid #e5e7eb" }}>
+          <div style={{ display: "flex", gap: "0.5rem" }}>
+            {TABS.map((t) => (
+              <button
+                key={t}
+                onClick={() => setTab(t)}
+                style={{
+                  padding: "0.35rem 0.85rem",
+                  borderRadius: "4px",
+                  border: "1px solid",
+                  borderColor: tab === t ? "#6366f1" : "#d1d5db",
+                  background: tab === t ? "#6366f1" : "transparent",
+                  color: tab === t ? "#fff" : "#374151",
+                  cursor: "pointer",
+                  fontSize: "0.85rem",
+                }}
+              >
+                {t}
+              </button>
+            ))}
+          </div>
           <NotificationFeedPanel />
         </div>
-        {prefs
-          ? <PreferenceCenter prefs={prefs} onChange={handlePrefsChange} />
-          : <p style={{ padding: "2rem" }}>Loading...</p>
-        }
+
+        {/* Tab content */}
+        {tab === "Preferences" && (
+          prefs
+            ? <PreferenceCenter prefs={prefs} onChange={handlePrefsChange} />
+            : <p style={{ padding: "2rem" }}>Loading...</p>
+        )}
+        {tab === "Slack" && <SlackKitPanel />}
       </div>
     </div>
   );
